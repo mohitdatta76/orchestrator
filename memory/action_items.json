@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "title": "Email Sam Chen (identity team manager) about token endpoint blocker",
+      "owner": "me",
+      "due": "2025-02-18",
+      "context": "Identity team token endpoint has been slipping 3 weeks, blocking Copilot integration and Casey's pipeline.",
+      "id": 1,
+      "status": "open",
+      "created_at": "2026-02-20T07:17:48.526032+00:00"
+    },
+    {
+      "title": "Approve IC4 backfill JD in IcM",
+      "owner": "me",
+      "due": "2025-02-21",
+      "context": "Jordan formally requested the hire; role has been open since January and is blocking Copilot auth layer ownership.",
+      "id": 2,
+      "status": "open",
+      "created_at": "2026-02-20T07:17:48.526040+00:00"
+    },
+    {
+      "title": "Send updated headcount JD to manager",
+      "owner": "Jordan Rivera",
+      "due": "2025-02-20",
+      "context": "Needed before JD can be approved in IcM for the IC4 backfill.",
+      "id": 3,
+      "status": "open",
+      "created_at": "2026-02-20T07:17:48.526042+00:00"
+    },
+    {
+      "title": "Set up joint call with identity team and Casey's team",
+      "owner": "Jordan Rivera",
+      "due": "2025-02-19",
+      "context": "To address shared dependency on identity team's auth token and prevent further slippage.",
+      "id": 4,
+      "status": "open",
+      "created_at": "2026-02-20T07:17:48.526044+00:00"
+    }
+  ],
+  "last_refreshed": "2026-02-20T07:17:48.526046+00:00"
+}

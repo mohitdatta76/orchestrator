@@ -1,0 +1,31 @@
+{
+  "direct_reports": [
+    {
+      "name": "Example Manager",
+      "alias": "exmanager",
+      "role": "Senior Engineering Manager",
+      "team": "Example Team",
+      "team_size": 8,
+      "level": "L63",
+      "tenure_months": 18,
+      "last_1on1": null,
+      "next_1on1": null,
+      "focus_areas": [],
+      "career_goals": "",
+      "strengths": [],
+      "watch_areas": [],
+      "notes": "Replace with your actual direct reports"
+    }
+  ],
+  "stakeholders": [
+    {
+      "name": "Example Director",
+      "alias": "exdirector",
+      "role": "Director of Engineering",
+      "relationship": "skip_level_manager",
+      "last_interaction": null,
+      "notes": "Replace with your actual stakeholders"
+    }
+  ],
+  "key_people": []
+}

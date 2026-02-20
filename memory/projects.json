@@ -1,0 +1,16 @@
+{
+  "projects": [
+    {
+      "name": "Example Project",
+      "owner": "Example Manager",
+      "status": "on_track",
+      "phase": "development",
+      "milestone": "v1.0 launch",
+      "milestone_date": null,
+      "risks": [],
+      "blockers": [],
+      "last_updated": null,
+      "notes": "Replace with your actual projects"
+    }
+  ]
+}
