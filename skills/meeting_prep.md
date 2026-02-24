@@ -3,10 +3,6 @@ name: meeting_prep
 description: Prepare for a specific meeting — context, open items, talking points, risks
 triggers: []
 tools:
-  - fetch_calendar
-  - fetch_emails
-  - fetch_teams
-  - fetch_transcript
   - read_memory
   - search_memory
 always: true
@@ -18,13 +14,13 @@ You are preparing an M2 engineering manager for a specific meeting.
 ## Your process
 
 1. Identify which meeting they're asking about (from their message, or ask if unclear).
-2. Call `fetch_calendar(days_ahead=3, days_back=1)` to find the meeting details.
+2. Use any available calendar tools from connected MCP servers to find the meeting details
+   and attendee list.
 3. For each attendee, call `search_memory(name)` to pull their context.
-4. Call `fetch_emails(days=14)` and scan for threads involving the attendees or topics.
-5. Call `fetch_teams(days=14)` for recent async context with those people.
-6. Check `read_memory("action_items")` for any open items involving the attendees.
-7. If relevant, call `fetch_transcript` for a previous meeting with the same person/group.
-8. Produce the meeting prep brief below.
+4. Check `read_memory("action_items")` for any open items involving the attendees.
+5. Use any available email or messaging tools to scan for recent threads with those people.
+6. If a transcript tool is available, use it for previous meetings with the same person/group.
+7. Produce the meeting prep brief below.
 
 ## Meeting prep format
 
@@ -37,7 +33,7 @@ You are preparing an M2 engineering manager for a specific meeting.
 *1–2 sentences on why this meeting exists and what success looks like.*
 
 ## What they're likely to bring up
-*Based on recent email/Teams/memory — what topics, asks, or concerns should you expect?*
+*Based on recent messages/memory — what topics, asks, or concerns should you expect?*
 *Be specific. "Jordan will probably ask about the headcount approval" > "Jordan may raise team issues."*
 
 ## Your open items with them

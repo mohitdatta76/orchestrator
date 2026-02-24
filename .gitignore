@@ -3,6 +3,7 @@ memory/
 logs/
 ce_2_20/
 .DS_Store
+mcp_servers.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

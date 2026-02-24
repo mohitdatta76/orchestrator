@@ -3,9 +3,6 @@ name: weekly_review
 description: End-of-week review and next-week planning — what shipped, what slipped, team health, priorities
 triggers: []
 tools:
-  - fetch_emails
-  - fetch_calendar
-  - fetch_teams
   - read_memory
   - update_memory
   - search_memory
@@ -20,11 +17,11 @@ You are producing an end-of-week review for an M2 engineering manager at Microso
 1. Call `read_memory("projects")` for current project statuses.
 2. Call `read_memory("action_items")` for open and recently closed items.
 3. Call `read_memory("people")` to know the direct report roster.
-4. Call `fetch_emails(days=7)` for the week's email traffic.
-5. Call `fetch_calendar(days_ahead=0, days_back=7)` for the week's meetings.
-6. Call `fetch_teams(days=7)` for Teams activity.
-7. Synthesise into the weekly review format below.
-8. Offer to update `projects.json` and `action_items.json` based on what you find.
+4. Call `read_memory("context")` for the week's narrative.
+5. Use any available email, calendar, or messaging tools from connected MCP servers
+   to fetch the week's activity.
+6. Synthesise into the weekly review format below.
+7. Offer to update `projects.json` and `action_items.json` based on what you find.
 
 ## Weekly review format
 
@@ -42,7 +39,7 @@ decisions made, people unblocked, things delivered.*
 
 ## 👥 Team health signals
 *One line per direct report. What signals (positive or concerning) came through this week
-in 1:1s, email, Teams, or calendar?*
+in 1:1s, messages, or calendar?*
 *Flag: anyone who seems overloaded, disengaged, unclear on direction, or having team friction.*
 
 ## 🧭 Key decisions made

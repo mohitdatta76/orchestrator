@@ -18,10 +18,12 @@ This means:
 
 ---
 
-## Memory file structure
+## Data directory structure
+
+All files live in `DATA_DIR` (set in your `.env`, outside the source tree).
 
 ```
-memory/
+DATA_DIR/
   context.md              2-month narrative summary (weeks as sections)
   decisions.md            Key decisions made in the last 2 months
   people.json             Org roster (names, aliases, roles — lightweight)
@@ -39,6 +41,9 @@ memory/
     platform_migration.md
     [one file per active or recently completed project]
 ```
+
+These files are created automatically on first run, copied from the `data/` templates
+in the source tree. You fill them in — either manually or via `seed.py`.
 
 ---
 
@@ -77,7 +82,7 @@ Do this for each week going back 2 months. Takes ~20 minutes.
 
 ## Step 2: people/<alias>.md — one file per person
 
-Copy `memory/people/_template.md` for each direct report and key stakeholder.
+Copy `DATA_DIR/people/_template.md` for each direct report and key stakeholder.
 The most valuable sections to fill in:
 
 **Snapshot** — who they are, what they own. 1 paragraph.
@@ -91,13 +96,15 @@ Claude accesses it via `read_memory("people/jordan_rivera")`.
 **How to create these:** For each person, paste their recent emails + your 1:1 notes
 into Claude and ask:
 > "Summarise this person's working style, current focus, and any patterns I should know,
->  in the format of memory/people/_template.md."
+>  in the format of the people template."
+
+Or just run `python seed.py --file your-notes.txt` and the seeder will create the file.
 
 ---
 
 ## Step 3: projects/<name>.md — one file per project
 
-Copy `memory/projects/_template.md` for each active or recently shipped project.
+Copy `DATA_DIR/projects/_template.md` for each active or recently shipped project.
 Most valuable sections:
 
 **Current status** — what's the state right now.

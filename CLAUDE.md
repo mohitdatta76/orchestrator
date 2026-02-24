@@ -16,9 +16,9 @@ The assistant helps with:
 - **Weekly reviews** — what shipped/slipped, team health, next week's priorities
 - **Q&A** — anything about people, projects, commitments from persistent memory
 
-All O365 data (email, calendar, Teams) comes from Microsoft Graph API.
-**Auth is not yet wired up** — the system runs on realistic mock data until
-`GRAPH_ACCESS_TOKEN` is set in `.env`.
+Live data (email, calendar, Teams/chat) comes from MCP servers registered in
+`mcp_servers.md`. Without any MCP servers connected, the assistant works from
+persistent memory only.
 
 ---
 
@@ -26,51 +26,55 @@ All O365 data (email, calendar, Teams) comes from Microsoft Graph API.
 
 ```
 main.py              — Interactive REPL (agentic loop)
-tools.py             — All tool schemas + dispatch (base + graph/memory tools)
-config.py            — Config from .env (model, skills_dir, memory_dir, etc.)
-skill_loader.py      — Loads skills/*.md, matches to user messages
+tools.py             — Base tool schemas + dispatch (bash, file I/O, memory)
+config.py            — Config from .env (ANTHROPIC_API_KEY + DATA_DIR required)
+skill_loader.py      — Loads skills from local files + registered MCP servers
 system_prompt.md     — Base system prompt (M2 manager persona)
+mcp_servers.md       — MCP server registry (gitignored, user-managed)
 
 manager/
-  graph_client.py    — O365 Graph API client; mock_mode=True if no token set
-  tools_graph.py     — Tool schemas + execution for graph/memory tools
-  memory_store.py    — CRUD for memory/ files (read, update, search)
+  memory_store.py    — CRUD for DATA_DIR files (read, update, search)
+  mcp_skills.py      — MCP server client + mcp_servers.md parser
 
-memory/              — Persistent context store (populate with real data)
-  people.json        — Direct reports, stakeholders, key relationships
-  projects.json      — Active projects: status, risks, milestones
-  action_items.json  — Open commitments with owner and due date
-  context.md         — Rolling narrative log (newest first)
+data/                — Template files shipped with source (never edited by users)
+  people.json / projects.json / action_items.json
+  context.md / decisions.md
+  people/_template.md / projects/_template.md
 
-skills/              — All always: true (no keyword triggers needed)
+skills/              — Local skills, always active
   manager_assistant.md  — Core M2 manager layer, always-on, priority 100
   daily_briefing.md     — Briefing format + instructions, priority 90
   meeting_prep.md       — Meeting prep format + instructions, priority 85
   weekly_review.md      — Weekly review format + instructions, priority 80
   coding.md             — Coding assistant (keyword-triggered)
   research.md           — Research assistant (keyword-triggered)
+```
 
-refresh.py           — Daily sync script (fetch → Claude distills → updates memory)
-cron_manager.py      — Enable/disable/status/run for 7am Mon–Fri cron
+User data lives in `DATA_DIR` (set in `.env`, outside the source tree, gitignored):
+```
+DATA_DIR/
+  people.json / projects.json / action_items.json
+  context.md / decisions.md
+  people/<alias>.md    — per-person 1:1 history
+  projects/<name>.md   — per-project notes and decisions
 ```
 
 ---
 
 ## Key design decisions
 
-1. **All manager skills are `always: true`** — keyword triggers were removed because
-   Claude's reasoning handles intent detection better than substring matching.
-   Say "what's on my plate" or "am I ready for tomorrow" — no trigger phrase needed.
+1. **All manager skills are `always: true`** — Claude sees all skills every turn and
+   applies whichever are relevant. No keyword triggers needed.
 
-2. **Mock mode is automatic** — no `GRAPH_ACCESS_TOKEN` → `graph_client.py` returns
-   realistic synthetic Microsoft data. Full system works end-to-end without credentials.
+2. **Live data via MCP** — email, calendar, and messages come from MCP servers listed
+   in `mcp_servers.md`. Skills are also dynamically registered from MCP servers.
+   Local skills always take precedence over remote ones on name conflict.
 
 3. **Memory is append-friendly JSON + Markdown** — `update_memory("action_items", {...})`
    deep-merges; `update_memory("context", "text")` prepends to context.md.
-   Designed to migrate to SQLite later without changing the tool interface.
 
-4. **refresh.py is headless** — calls Claude directly (no REPL), dumps all sources into
-   one payload, Claude returns structured JSON, script writes to memory files.
+4. **DATA_DIR is required** — crashes on startup if not set. First run copies templates
+   from `data/` into `DATA_DIR` automatically.
 
 ---
 
@@ -82,20 +86,14 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# edit .env — set ANTHROPIC_API_KEY at minimum
+# edit .env — set ANTHROPIC_API_KEY and DATA_DIR
+
+# Seed from meeting notes or synthesis files
+python seed.py --file my-notes.txt
+python seed.py --file weekly_synthesis.json   # direct parse, no Claude call
 
 # Start the assistant
 python main.py
-
-# Run a manual daily refresh
-python refresh.py
-python refresh.py --dry-run   # preview without writing
-
-# Cron job (7am Mon–Fri, runs refresh.py)
-python cron_manager.py enable
-python cron_manager.py status
-python cron_manager.py disable
-python cron_manager.py run    # run now manually
 ```
 
 ---
@@ -103,55 +101,38 @@ python cron_manager.py run    # run now manually
 ## What to work on next
 
 ### High priority
-- **Wire up real auth** — MSAL device-code flow in `graph_client.py` (stubs already there).
-  Need `GRAPH_CLIENT_ID` + `GRAPH_TENANT_ID` in `.env`, then call `msal.PublicClientApplication`.
-  Scopes needed: `Mail.Read`, `Calendars.Read`, `Chat.Read`, `ChannelMessage.Read.All`, `User.Read`.
+- **Populate DATA_DIR** — run `seed.py` against real notes/transcripts, or manually
+  edit `people.json` and `projects.json`. This is what makes the assistant useful.
 
-- **Populate memory files** — replace placeholder data in `memory/people.json` and
-  `memory/projects.json` with real direct reports, stakeholders, and active projects.
-  This is what makes the assistant genuinely useful.
+- **Connect an MCP server** — add entries to `mcp_servers.md` for email, calendar,
+  and Teams data. The skills will use whatever tools the MCP server exposes.
 
 ### Medium priority
-- **ADO boards integration** — add `fetch_ado_items` tool to `manager/tools_graph.py`.
-  Azure DevOps REST API uses a PAT (Personal Access Token), simpler than Graph OAuth.
-  Endpoint: `https://dev.azure.com/{org}/{project}/_apis/wit/workitems`
-
-- **Meeting transcript retrieval** — the `fetch_transcript` tool is stubbed.
-  Teams meeting transcripts are available via Graph:
-  `GET /me/onlineMeetings/{id}/transcripts/{id}/content`
-  Requires `OnlineMeetingTranscript.Read.All` permission.
-
-- **Email threading** — currently shows individual emails; grouping by conversation thread
-  would reduce noise significantly. Graph supports `$expand=threads`.
+- **Per-person memory enrichment** — as 1:1s happen, seed notes into `people/<alias>.md`.
+- **ADO boards via MCP** — an MCP server exposing ADO work items would make weekly
+  reviews significantly more grounded.
 
 ### Lower priority
-- **SQLite migration** — swap `memory_store.py` backend to SQLite for better querying
-  and history. Tool interface (`read_memory`, `update_memory`, `search_memory`) stays the same.
-
-- **Slack/email drafting** — add a `draft_reply(email_id, tone)` tool that uses Claude
-  to draft a response to a specific email, which the user can copy/paste.
-
-- **People enrichment** — auto-update `people.json` from org chart data (Graph `/users`
-  endpoint) to keep team size and reporting relationships current.
+- **SQLite migration** — swap `memory_store.py` backend. Tool interface stays the same.
+- **Email reply drafting** — skill that uses available email tools to draft responses.
 
 ---
 
 ## Environment variables
 
-| Variable | Required | Default | Description |
-|---|---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | — | Claude API key |
-| `MODEL` | No | `claude-opus-4-6` | Model to use |
-| `MAX_TOKENS` | No | `8096` | Max tokens per response |
-| `MEMORY_DIR` | No | `memory` | Path to memory directory |
-| `GRAPH_ACCESS_TOKEN` | No | — | O365 bearer token; unset = mock mode |
-| `GRAPH_CLIENT_ID` | No | — | Azure AD app client ID (for MSAL flow) |
-| `GRAPH_TENANT_ID` | No | — | Azure AD tenant ID (for MSAL flow) |
+| Variable | Required | Description |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Yes | Claude API key |
+| `DATA_DIR` | Yes | Path to user data directory (outside source tree) |
+| `MCP_SERVERS_FILE` | No | Path to MCP servers config (default: `mcp_servers.md`) |
+| `MODEL` | No | Model to use (default: `claude-opus-4-6`) |
+| `MAX_TOKENS` | No | Max tokens per response (default: `8096`) |
 
 ---
 
-## File ownership notes
+## Gitignore notes
 
-- `memory/` should be in `.gitignore` — it contains personal work context
-- `logs/` (created by cron) should also be gitignored
-- `.env` is already gitignored via `.env.example` convention
+These are gitignored and must not be committed:
+- `DATA_DIR` contents — personal work context
+- `mcp_servers.md` — contains server URLs and auth tokens
+- `.env`

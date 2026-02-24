@@ -99,6 +99,96 @@ If the input contains a date, use it. Otherwise omit dates from content.
 """
 
 
+def _slugify(text: str) -> str:
+    """Convert a display name or title to a lowercase_underscore file slug."""
+    text = text.lower()
+    text = re.sub(r"[^\w\s]", "", text)
+    text = re.sub(r"\s+", "_", text.strip())
+    return text[:50]
+
+
+def detect_synthesis(text: str) -> dict | None:
+    """
+    Return parsed JSON if the input is a synthesis file (daily or weekly),
+    otherwise return None.
+
+    Synthesis files have the shape: {"start_date": ..., "topics": [...]}
+    """
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if isinstance(data, dict) and "topics" in data and isinstance(data["topics"], list):
+        return data
+    return None
+
+
+def parse_synthesis(data: dict) -> dict:
+    """
+    Convert a synthesis JSON directly into the extraction format without calling Claude.
+
+    Works for both daily_synthesis.json and weekly_synthesis.json — same schema.
+    """
+    start = data.get("start_date", "")
+    end = data.get("end_date", "")
+    date_range = f"{start} to {end}" if start and end and start != end else (start or end)
+    topics = data.get("topics", [])
+
+    writes = []
+    people_map: dict[str, tuple[str, list[str]]] = {}  # alias -> (display_name, [content_blocks])
+
+    for topic in topics:
+        topic_name = topic.get("topic", "Unknown")
+        slug = _slugify(topic_name)
+        summary = topic.get("summary", "")
+        blockers = topic.get("blockers", [])
+        risks = topic.get("risks", [])
+        open_questions = topic.get("open_questions", [])
+        people = topic.get("people_involved", [])
+
+        # Build project file entry
+        lines = [f"## {date_range}\n", f"{summary}\n"]
+        if blockers:
+            lines += ["**Blockers:**"] + [f"- {b}" for b in blockers] + [""]
+        if risks:
+            lines += ["**Risks:**"] + [f"- {r}" for r in risks] + [""]
+        if open_questions:
+            lines += ["**Open questions:**"] + [f"- {q}" for q in open_questions] + [""]
+        if people:
+            lines.append(f"**Key people:** {', '.join(p['name'] for p in people if p.get('name'))}")
+
+        writes.append({"key": f"projects/{slug}", "content": "\n".join(lines)})
+
+        # Accumulate per-person entries across topics
+        for person in people:
+            name = person.get("name", "").strip()
+            if not name:
+                continue
+            alias = _slugify(name)
+            contribs = person.get("contributions", [])
+            block = f"## {date_range} — {topic_name}\n" + "\n".join(f"- {c}" for c in contribs)
+            if alias not in people_map:
+                people_map[alias] = (name, [])
+            people_map[alias][1].append(block)
+
+    # Write one file per person (all their topic contributions combined)
+    for alias, (name, blocks) in people_map.items():
+        writes.append({"key": f"people/{alias}", "content": "\n\n".join(blocks)})
+
+    # Write a context entry summarising the period
+    context_lines = [f"## {date_range}\n"]
+    for topic in topics:
+        context_lines.append(f"**{topic.get('topic', '')}:** {topic.get('summary', '')}\n")
+    writes.append({"key": "context", "content": "\n".join(context_lines)})
+
+    n_people = len(people_map)
+    return {
+        "summary": f"Synthesis {date_range}: {len(topics)} topics, {n_people} people — parsed directly from structured JSON.",
+        "writes": writes,
+        "action_items": [],
+    }
+
+
 def parse_args():
     p = argparse.ArgumentParser(
         description="Seed manager memory from raw input data",
@@ -133,9 +223,9 @@ def read_inputs(args) -> list[tuple[str, str]]:
         if not d.is_dir():
             print(f"Error: not a directory: {d}")
             sys.exit(1)
-        files = sorted(d.glob("*.txt")) + sorted(d.glob("*.md"))
+        files = sorted(d.glob("*.txt")) + sorted(d.glob("*.md")) + sorted(d.glob("*.json"))
         if not files:
-            print(f"No .txt or .md files found in {d}")
+            print(f"No .txt, .md, or .json files found in {d}")
             sys.exit(1)
         for f in files:
             if f.name.startswith("_"):
@@ -281,6 +371,17 @@ def process_input(
     dry_run: bool,
     verbose: bool,
 ) -> None:
+    # Fast path: if the input is a synthesis JSON, parse it directly — no Claude call needed
+    synthesis_data = detect_synthesis(text)
+    if synthesis_data:
+        print(f"\nProcessing: {label} [structured synthesis — direct parse]")
+        extracted = parse_synthesis(synthesis_data)
+        print(f"  Summary: {extracted['summary']}")
+        counts = apply_extraction(extracted, dry_run=dry_run, verbose=verbose)
+        print(f"  Result: {counts['files']} file write(s), {counts['action_items']} action item(s)")
+        return
+
+    # Slow path: unstructured text — send to Claude for extraction
     chunks = chunk_text(text)
     plural = f" ({len(chunks)} chunks)" if len(chunks) > 1 else ""
     print(f"\nProcessing: {label}{plural}")

@@ -19,16 +19,22 @@ All writes are atomic (write-then-replace) to avoid corruption.
 
 import json
 import os
-import re
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-_DEFAULT_MEMORY_DIR = Path(__file__).parent.parent / "memory"
+# Source template directory — ships with the codebase
+_TEMPLATE_DIR = Path(__file__).parent.parent / "data"
 
 
 def _memory_dir() -> Path:
-    d = os.getenv("MEMORY_DIR", str(_DEFAULT_MEMORY_DIR))
+    d = os.getenv("DATA_DIR")
+    if not d:
+        raise RuntimeError(
+            "DATA_DIR is not set. Cannot access memory. "
+            "Set DATA_DIR in your .env file."
+        )
     return Path(d)
 
 
@@ -168,50 +174,32 @@ def list_memory_keys() -> list[str]:
 
 
 def initialize_memory() -> str:
-    """Create skeleton memory files and subdirectories if they don't exist."""
+    """
+    Ensure the data directory exists and contains all required files.
+
+    On first run, copies template files from the source data/ directory.
+    Existing files are never overwritten — user data is safe to call repeatedly.
+    """
     mem_dir = _memory_dir()
     mem_dir.mkdir(parents=True, exist_ok=True)
-    (mem_dir / "people").mkdir(exist_ok=True)
-    (mem_dir / "projects").mkdir(exist_ok=True)
     created = []
 
-    skeleton_json = {
-        "people": {
-            "direct_reports": [],
-            "stakeholders": [],
-            "key_people": [],
-        },
-        "projects": {"projects": []},
-        "action_items": {"items": [], "last_refreshed": None},
-    }
+    if not _TEMPLATE_DIR.exists():
+        return f"Warning: template directory not found at {_TEMPLATE_DIR}. Skipping initialization."
 
-    for key, data in skeleton_json.items():
-        p = _json_path(key)
-        if not p.exists():
-            p.write_text(json.dumps(data, indent=2), encoding="utf-8")
-            created.append(p.name)
-
-    ctx = _md_path("context")
-    if not ctx.exists():
-        ctx.write_text(
-            "# Manager Context Log\n\nRolling narrative. Newest at top.\n\n---\n\n"
-            "*No entries yet.*\n",
-            encoding="utf-8",
-        )
-        created.append(ctx.name)
-
-    dec = _md_path("decisions")
-    if not dec.exists():
-        dec.write_text(
-            "# Key Decisions Log\n\nImportant decisions made. Newest at top.\n\n---\n\n"
-            "*No entries yet.*\n",
-            encoding="utf-8",
-        )
-        created.append(dec.name)
+    for src in _TEMPLATE_DIR.rglob("*"):
+        if src.is_dir():
+            continue
+        rel = src.relative_to(_TEMPLATE_DIR)
+        dst = mem_dir / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if not dst.exists():
+            shutil.copy2(src, dst)
+            created.append(str(rel))
 
     if created:
-        return f"Initialized memory files: {', '.join(created)}"
-    return "Memory files already exist."
+        return f"Initialized data directory with: {', '.join(created)}"
+    return "Data directory already initialized."
 
 
 # ------------------------------------------------------------------

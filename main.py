@@ -27,6 +27,7 @@ import anthropic
 from config import Config
 from skill_loader import SkillLoader
 import tools as tool_module
+from manager import memory_store
 
 
 # ------------------------------------------------------------------
@@ -135,11 +136,15 @@ def main():
         sys.exit(1)
 
     client = anthropic.Anthropic(api_key=config.api_key)
-    loader = SkillLoader(config.skills_dir)
+    loader = SkillLoader(config.skills_dir, mcp_servers_file=config.mcp_servers_file)
+    memory_store.initialize_memory()
 
     print("Agent Orchestrator")
     print(f"  model    : {config.model}")
+    print(f"  data     : {config.data_dir}")
     print(f"  skills   : {config.skills_dir}/  ({len(loader.list_skills())} loaded)")
+    if loader._mcp_sources:
+        print(f"  mcp      : {len(loader._mcp_sources)} server(s) from {config.mcp_servers_file}")
     print(f"  prompt   : {config.system_prompt_file}")
     print("Type /help for commands, or 'exit' to quit.\n")
 

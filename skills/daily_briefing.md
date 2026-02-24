@@ -1,11 +1,8 @@
 ---
 name: daily_briefing
-description: Generate a structured daily briefing — emails, calendar, Teams, and action items
+description: Generate a structured daily briefing — email, calendar, messages, and action items
 triggers: []
 tools:
-  - fetch_emails
-  - fetch_calendar
-  - fetch_teams
   - read_memory
   - update_memory
   - search_memory
@@ -19,10 +16,10 @@ You are generating a daily briefing for an M2 engineering manager at Microsoft.
 
 1. Call `read_memory("action_items")` to load open commitments.
 2. Call `read_memory("people")` to know who's who.
-3. Call `fetch_emails(days=1, max_results=20)` to get recent emails.
-4. Call `fetch_calendar(days_ahead=1, days_back=0)` for today's meetings.
-5. Call `fetch_teams(days=1)` for Teams messages.
-6. Synthesise everything into the briefing format below.
+3. Call `read_memory("context")` for recent narrative context.
+4. Use any available data tools (email, calendar, messages) provided by connected MCP
+   servers to fetch today's live data.
+5. Synthesise everything into the briefing format below.
 
 ## Briefing format
 
@@ -36,7 +33,7 @@ You are generating a daily briefing for an M2 engineering manager at Microsoft.
 ## 📅 Today's meetings
 *For each meeting: title, time, who's attending, one-sentence context, and any prep needed.*
 
-## 📨 Key signals from email & Teams
+## 📨 Key signals from email & messages
 *3–5 notable threads or messages. What's the signal, not just the subject line.*
 *Group by theme if relevant (e.g. project X has 3 related threads).*
 
@@ -44,7 +41,7 @@ You are generating a daily briefing for an M2 engineering manager at Microsoft.
 *Pull from action_items memory. Flag anything overdue.*
 
 ## 👥 Direct report pulse
-*If anything in email/Teams relates to a specific direct report or their team, note it here.*
+*If anything in today's data relates to a specific direct report or their team, note it here.*
 *Only include if there's something actionable or worth watching.*
 
 ## 📌 This week's context

@@ -2,12 +2,6 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-try:
-    from manager import tools_graph as _graph_tools
-    _GRAPH_AVAILABLE = True
-except ImportError:
-    _GRAPH_AVAILABLE = False
-
 
 # ------------------------------------------------------------------
 # Tool schemas (Anthropic tool_use format)
@@ -100,10 +94,6 @@ TOOLS = [
     },
 ]
 
-# Merge graph/memory tools if the manager package is available
-if _GRAPH_AVAILABLE:
-    TOOLS = TOOLS + _graph_tools.GRAPH_TOOLS
-
 # Build a lookup by name for fast filtering
 _TOOL_BY_NAME: dict[str, dict] = {t["name"]: t for t in TOOLS}
 
@@ -120,10 +110,6 @@ def get_tools(names: list[str]) -> list[dict]:
 def execute(name: str, params: dict) -> Any:
     """Dispatch a tool call and return a string result."""
     try:
-        # Dispatch graph/memory tools to the manager package
-        if _GRAPH_AVAILABLE and name in _graph_tools.GRAPH_TOOL_NAMES:
-            return _graph_tools.execute(name, params)
-
         match name:
             case "bash":
                 return _bash(params)

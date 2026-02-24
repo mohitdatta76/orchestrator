@@ -4,10 +4,18 @@ from typing import Optional
 
 import yaml
 
+from manager.mcp_skills import load_mcp_servers
+
 
 class SkillLoader:
     """
-    Loads skills from markdown files with YAML frontmatter.
+    Loads skills from two sources, merged into a single registry:
+
+    1. Local files — skills/*.md (YAML frontmatter + markdown body)
+    2. MCP servers — prompts exposed by remote MCP servers via JSON-RPC
+
+    Local skills take precedence: if a remote skill has the same name as a
+    local one, the local version wins.
 
     Skill file format (skills/my_skill.md):
 
@@ -28,8 +36,9 @@ class SkillLoader:
         You are an expert at...
     """
 
-    def __init__(self, skills_dir: str):
+    def __init__(self, skills_dir: str, mcp_servers_file: str = "mcp_servers.md"):
         self.skills_dir = Path(skills_dir)
+        self._mcp_sources = load_mcp_servers(mcp_servers_file)
         self._skills: dict[str, dict] = {}
         self._load_all()
 
@@ -39,14 +48,33 @@ class SkillLoader:
 
     def _load_all(self):
         self._skills.clear()
-        if not self.skills_dir.exists():
-            return
-        for path in sorted(self.skills_dir.glob("*.md")):
-            skill = self._parse(path)
-            if skill:
-                self._skills[skill["name"]] = skill
 
-    def _parse(self, path: Path) -> Optional[dict]:
+        # 1. Local skills (highest precedence)
+        local: dict[str, dict] = {}
+        if self.skills_dir.exists():
+            for path in sorted(self.skills_dir.glob("*.md")):
+                skill = self._parse_file(path)
+                if skill:
+                    local[skill["name"]] = skill
+        self._skills.update(local)
+
+        # 2. Remote MCP skills (only added if name not already taken by local)
+        for source in self._mcp_sources:
+            remote_skills = source.fetch_skills()
+            added = 0
+            for skill in remote_skills:
+                if skill["name"] not in self._skills:
+                    self._skills[skill["name"]] = skill
+                    added += 1
+            if remote_skills:
+                n_total = len(remote_skills)
+                n_skipped = n_total - added
+                msg = f"[mcp_skills] {source.url}: loaded {added}/{n_total} skill(s)"
+                if n_skipped:
+                    msg += f" ({n_skipped} overridden by local)"
+                print(msg)
+
+    def _parse_file(self, path: Path) -> Optional[dict]:
         text = path.read_text(encoding="utf-8")
 
         # Extract YAML frontmatter between --- delimiters
@@ -75,14 +103,18 @@ class SkillLoader:
             "always": bool(meta.get("always", False)),
             "priority": int(meta.get("priority", 0)),
             "content": body,
-            "path": str(path),
+            "source": "local",
         }
 
     def reload(self):
-        """Reload all skills from disk."""
+        """Reload all skills — re-reads local files and re-fetches from MCP servers."""
         self._load_all()
-        print(f"[skill_loader] Loaded {len(self._skills)} skill(s): "
-              f"{', '.join(self._skills) or 'none'}")
+        local_count = sum(1 for s in self._skills.values() if s.get("source") == "local")
+        remote_count = len(self._skills) - local_count
+        parts = [f"{local_count} local"]
+        if remote_count:
+            parts.append(f"{remote_count} remote")
+        print(f"[skill_loader] Loaded {len(self._skills)} skill(s): {', '.join(parts)}")
 
     # ------------------------------------------------------------------
     # Querying
@@ -96,7 +128,7 @@ class SkillLoader:
 
     def match(self, user_message: str) -> list[dict]:
         """
-        Return skills relevant to *user_message*, sorted by priority.
+        Return skills relevant to user_message, sorted by priority.
 
         Selection rules (in order):
           1. always=true  → always included
@@ -111,13 +143,11 @@ class SkillLoader:
                 matched.append(skill)
                 continue
 
-            # Explicit invocation
             if (f"@{skill['name']}" in user_message
                     or f"/skill:{skill['name']}" in user_message):
                 matched.append(skill)
                 continue
 
-            # Keyword triggers
             for trigger in skill["triggers"]:
                 if trigger in msg_lower:
                     matched.append(skill)

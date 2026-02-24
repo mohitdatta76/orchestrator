@@ -104,8 +104,8 @@ subject, sender, timestamp, 250-char preview. A calendar event becomes:
 title, time, attendees, notes. Less is more — Claude doesn't need raw JSON.
 
 ### `manager/memory_store.py` — persistence between sessions
-Reads and writes the `memory/` files. This is how Claude knows who Jordan Rivera is
-next Tuesday even though the conversation was cleared. The agent updates these files
+Reads and writes the files in `DATA_DIR`. This is how Claude knows who Jordan Rivera
+is next Tuesday even though the conversation was cleared. The agent updates these files
 as it learns things — new action items, project status changes, context notes.
 
 ### `refresh.py` — the background brain
@@ -119,7 +119,7 @@ it to the memory files. A daily briefing file is also written for later retrieva
 ## The data flow
 
 ```
-Microsoft 365                    memory/ files
+Microsoft 365                    DATA_DIR/ files
 (Email, Calendar, Teams)         (people, projects,
         │                         action items, context)
         │                                │

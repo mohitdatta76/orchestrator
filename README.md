@@ -1,42 +1,47 @@
 # Manager Productivity Assistant
 
-An AI-powered assistant for engineering managers at Microsoft. It monitors your email,
-calendar, and Teams, maintains a persistent memory of your org and projects, and helps
-you show up prepared for every day and every meeting.
+An AI-powered assistant for engineering managers. Maintains a persistent memory of
+your org, projects, and commitments — and connects to live data via MCP servers.
 
-Built on a Python agentic orchestrator using Claude (Anthropic API) + Microsoft Graph API.
+Built on a Python agentic loop using Claude (Anthropic API).
 
 ---
 
 ## What it does
 
-**Ask it anything in natural language:**
+Ask it anything in natural language:
 
 ```
 > morning briefing
 > prep me for my 1:1 with Jordan
-> what's the status of the Copilot integration project?
+> what's the status on the Copilot integration project?
 > what are my open action items?
 > week in review
-> did anyone message me about the API migration?
 ```
 
-**It automatically:**
-- Fetches your email, calendar, and Teams messages
-- Reads your persistent memory (people, projects, commitments)
-- Produces structured, actionable output in seconds
-
-**Daily background refresh** (optional cron job):
-Runs every weekday morning at 7am, fetches overnight data, updates your memory files,
-and writes a pre-built briefing you can read any time.
+It reads your persistent memory (people, projects, commitments) and, if MCP servers
+are connected, fetches live email, calendar, and message data to produce structured,
+actionable output.
 
 ---
 
-## Setup
+## Requirements
 
-### 1. Install dependencies
+- Python 3.10+
+- An [Anthropic API key](https://console.anthropic.com/)
+- A directory on your machine for your personal data (outside the source tree)
+- MCP server(s) for live data — optional, works from memory without them
+
+---
+
+## Installation
+
+### 1. Clone and install dependencies
 
 ```bash
+git clone <repo-url>
+cd orchestrator
+
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -48,23 +53,17 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Edit `.env` and set at minimum:
+Open `.env` and set the two required values:
 
-```
+```bash
 ANTHROPIC_API_KEY=sk-ant-...
+DATA_DIR=/Users/you/orchestrator-data
 ```
 
-Without a Microsoft Graph token, the assistant runs on **realistic mock data**
-automatically — you can explore the full experience before wiring up credentials.
+`DATA_DIR` can be any path you choose. It will be created and populated automatically
+on first run. It is never committed to git.
 
-### 3. Populate your context (optional but recommended)
-
-Edit `memory/people.json` to add your actual direct reports and stakeholders.
-Edit `memory/projects.json` to add your active projects.
-
-The assistant will update these files automatically as it learns more.
-
-### 4. Run
+### 3. Run
 
 ```bash
 python main.py
@@ -72,86 +71,56 @@ python main.py
 
 ---
 
-## Connecting to real Microsoft 365 data
+## Populating your context
 
-### Get an access token (quickest path)
+The assistant is only as useful as the context it has.
 
-1. Go to [Graph Explorer](https://developer.microsoft.com/en-us/graph/graph-explorer)
-2. Sign in with your Microsoft account
-3. Copy the access token from the **Access token** tab
-4. Add to `.env`:
-   ```
-   GRAPH_ACCESS_TOKEN=eyJ...
-   ```
+### Seed from notes or transcripts
 
-Tokens expire after ~1 hour. For a persistent setup, configure MSAL app credentials
-(see `CLAUDE.md` for full instructions).
+```bash
+python seed.py --file my-notes.txt          # unstructured text → Claude extracts
+python seed.py --file weekly_synthesis.json  # structured synthesis → direct parse
+python seed.py --dir ./meeting-notes/        # process a whole directory
+python seed.py --file notes.txt --dry-run    # preview without writing
+```
 
-### Required Graph API permissions
+### Edit directly
 
-| Permission | Used for |
+Open `DATA_DIR` in your editor:
+
+| File | What to put in it |
 |---|---|
-| `Mail.Read` | Fetch emails |
-| `Calendars.Read` | Fetch calendar events |
-| `Chat.Read` | Fetch Teams DMs |
-| `ChannelMessage.Read.All` | Fetch Teams channel messages |
-| `User.Read` | Your profile |
+| `people.json` | Direct reports, stakeholders, key relationships |
+| `projects.json` | Active projects with status, risks, milestones |
+| `action_items.json` | Open commitments |
+| `context.md` | Narrative context |
 
 ---
 
-## Daily refresh
+## Connecting live data via MCP
 
-Run manually anytime:
-
-```bash
-python refresh.py              # refresh last 24 hours
-python refresh.py --since 48h  # go back further
-python refresh.py --dry-run    # preview without writing anything
-```
-
-Enable automatic morning refresh (Mon–Fri, 7am):
-
-```bash
-python cron_manager.py enable
-python cron_manager.py status
-python cron_manager.py disable
-```
-
----
-
-## Project structure
+Add servers to `mcp_servers.md` (created automatically, gitignored):
 
 ```
-main.py              REPL — start here
-refresh.py           Daily sync script
-cron_manager.py      Cron job manager
+[MCP_SERVER]
+ServerURL = https://your-mcp-server.com/mcp
+AuthToken = optional-bearer-token
 
-manager/
-  graph_client.py    Microsoft Graph API (+ mock data fallback)
-  tools_graph.py     Tool implementations for Claude
-  memory_store.py    Read/write persistent memory
-
-memory/              Your context (gitignored)
-  people.json        Direct reports, stakeholders
-  projects.json      Active projects
-  action_items.json  Open commitments
-  context.md         Rolling narrative log
-  briefing_*.md      Daily pre-built briefings
-
-skills/              Behaviour modules for the assistant
-  manager_assistant.md  Core manager layer (always active)
-  daily_briefing.md     Briefing format and instructions
-  meeting_prep.md       Meeting prep format and instructions
-  weekly_review.md      Weekly review format and instructions
+[MCP_SERVER]
+ServerURL = https://another-server.com/mcp
 ```
+
+MCP servers can provide both **data tools** (email, calendar, messages) and
+**skills** (prompt templates). Skills from MCP servers are merged with local skills —
+local always wins on name conflict.
 
 ---
 
 ## REPL commands
 
-| Command | Description |
+| Command | What it does |
 |---|---|
-| `/skills` | List loaded skills |
+| `/skills` | List loaded skills (local + MCP) |
 | `/tools` | Show available tools |
 | `/model claude-sonnet-4-6` | Switch model mid-session |
 | `/clear` | Clear conversation history |
@@ -160,9 +129,44 @@ skills/              Behaviour modules for the assistant
 
 ---
 
+## Project structure
+
+```
+main.py              Start here — interactive REPL
+seed.py              Seed memory from notes or structured synthesis files
+mcp_servers.md       MCP server registry (gitignored, user-managed)
+
+manager/
+  memory_store.py    Read/write files in DATA_DIR
+  mcp_skills.py      MCP server client + mcp_servers.md parser
+
+skills/              Local skills — always active
+  manager_assistant.md  Core manager layer
+  daily_briefing.md     Morning briefing format
+  meeting_prep.md       Meeting prep format
+  weekly_review.md      Weekly review format
+
+data/                Template files shipped with the source
+  people.json / projects.json / action_items.json
+  context.md / decisions.md
+  people/_template.md / projects/_template.md
+```
+
+Your personal data in `DATA_DIR` (outside this repo, never committed):
+
+```
+DATA_DIR/
+  people.json / projects.json / action_items.json
+  context.md / decisions.md
+  people/     ← per-person 1:1 notes
+  projects/   ← per-project notes and decisions
+```
+
+---
+
 ## What's coming
 
-- [ ] Azure DevOps boards integration
-- [ ] Meeting transcript retrieval
-- [ ] Email reply drafting
-- [ ] Persistent MSAL token (no manual token refresh)
+- [ ] MCP server for Microsoft 365 (email, calendar, Teams)
+- [ ] MCP server for Azure DevOps boards
+- [ ] Email reply drafting skill
+- [ ] Meeting transcript skill
