@@ -35,7 +35,25 @@
       "id": 4,
       "status": "open",
       "created_at": "2026-02-20T07:17:48.526044+00:00"
+    },
+    {
+      "title": "[WATCH] Shadow experiment approach — resolve dev branch vs. MSIT vs. worldwide requirement",
+      "owner": "Aijuan Xia",
+      "due": null,
+      "context": "Rongbin flagged dev branch shadow is unreliable (2-day waits, compliance risk). Aijuan suggested option sets / control tower. Unresolved as of Feb 19. This gates the entire Context & Memory experiment timeline. Ask in next 1:1 whether approach is finalized and whether they can run against MSIT without worldwide rollout.",
+      "id": 5,
+      "status": "open",
+      "created_at": "2026-02-20T00:00:00.000000+00:00"
+    },
+    {
+      "title": "[WATCH] Aijuan's team staffing — single-point bottleneck and Daniel departure",
+      "owner": "me",
+      "due": null,
+      "context": "Aijuan is personally coding the Sydney integration (blocker for Rongbin). Daniel left the team, losing institutional knowledge. Aijuan said 'I cannot guarantee how soon I can get it done.' Check if she needs a backfill, temporary help, or scope reduction. Watch for burnout signals.",
+      "id": 6,
+      "status": "open",
+      "created_at": "2026-02-20T00:00:00.000000+00:00"
     }
   ],
-  "last_refreshed": "2026-02-20T07:17:48.526046+00:00"
+  "last_refreshed": "2026-02-20T00:00:00.000000+00:00"
 }

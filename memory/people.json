@@ -1,31 +1,176 @@
 {
   "direct_reports": [
     {
-      "name": "Example Manager",
-      "alias": "exmanager",
-      "role": "Senior Engineering Manager",
-      "team": "Example Team",
-      "team_size": 8,
-      "level": "L63",
-      "tenure_months": 18,
+      "name": "Sandhya Sunderrajan",
+      "alias": "sandhyas",
+      "role": "Engineering Manager",
+      "team": "SIGS Ingestion / Signals Platform",
+      "team_members_mentioned": ["Deven Simpson", "Gouthami Kamalnath", "Maciej Krzysiak", "Dajian Dong", "Jebarson Jebamony"],
+      "level": null,
+      "tenure_months": null,
       "last_1on1": null,
       "next_1on1": null,
-      "focus_areas": [],
+      "focus_areas": [
+        "SIGS ingestion pipeline reliability and HPA deprecation",
+        "Helix embedded knowledge evals and flight readiness",
+        "Editorial answers threshold tuning and embedding model changes",
+        "WebSearch V2 deployment and DA scoping validation",
+        "Signal restatement pattern for IDEAS/CDP (callback token approach)",
+        "New partner onboarding (virtual signals, system notification signals)"
+      ],
+      "active_workstreams": [
+        {
+          "name": "SIGS Ingestion & HPA Deprecation",
+          "status": "in_progress",
+          "notes": "Maciej progressing on reducing HPA permission bloat. Ingestion pipeline stable. Working on removing HPA on ingestion side."
+        },
+        {
+          "name": "Helix DA Flight Readiness",
+          "status": "at_risk",
+          "notes": "Helix embedded showing better behavior but failing assertions need investigation. WebSearch V2 has breaking change for DA scoping (url: vs site: operator). Sandhya identified and escalated this. Andy unresponsive on evals."
+        },
+        {
+          "name": "SIGS Restatement for IDEAS/VI",
+          "status": "in_progress",
+          "notes": "Sandhya is the technical lead coordinating with CDP/Karim's team on the callback-token-based pattern Ahmed proposed. She posted the onboarding steps in Teams. Follow-up meeting with Karim was being scheduled."
+        },
+        {
+          "name": "Editorial Answers",
+          "status": "on_track",
+          "notes": "PR created for enforcing 0-10 threshold range. Embedding model change won't require threshold changes. Sweet spot is 5-8."
+        }
+      ],
       "career_goals": "",
-      "strengths": [],
-      "watch_areas": [],
-      "notes": "Replace with your actual direct reports"
+      "strengths": [
+        "Deep technical knowledge of SIGS pipeline and Substrate infrastructure",
+        "Methodical standup management — tracks bugs, priorities, and partner dependencies clearly",
+        "Good at identifying and escalating breaking changes (e.g., WebSearch V2 scoping issue)"
+      ],
+      "watch_areas": [
+        "Andy unresponsive on Helix evals — may need escalation help",
+        "WebSearch V2 breaking change for DA scoping could cause downstream issues if not resolved",
+        "Ownership ambiguity: Rashmi said Sandhya's team doesn't own incremental DA capabilities, but the team is being pulled into validation work anyway",
+        "Team has people on holiday (Jose - Brazil) and some workstreams have single-person dependencies"
+      ],
+      "notes": "Added 2026-02-20. Context from SIGS Ingestion Standup (Feb 17), restatement meetings (Feb 18-19), Helix DA readiness threads (Feb 17-18)."
+    },
+    {
+      "name": "Aijuan Xia",
+      "alias": "aijuanx",
+      "role": "Engineering Manager",
+      "team": "Context & Memory / Sydney Integration",
+      "team_members_mentioned": ["Rongbin Huo", "Denis Heliszkowski", "Francisco Santana"],
+      "level": null,
+      "tenure_months": null,
+      "last_1on1": null,
+      "next_1on1": null,
+      "focus_areas": [
+        "Live context API integration into Sydney for Copilot memory features",
+        "Shadow experiment planning and execution (memory selector + live context)",
+        "Context object service moments data experimentation",
+        "Sydney-side code integration for new endpoint",
+        "Coordinating with Rongbin on memory data selection and shadow flights"
+      ],
+      "active_workstreams": [
+        {
+          "name": "Live Context API & Sydney Integration",
+          "status": "in_progress",
+          "notes": "Aijuan is the current blocker — she's doing the Sydney-side integration to plug in the new context endpoint. Using Claude/AI coding tools to accelerate. Rongbin will continue once her piece is in. She acknowledged being 'short on stuff' and said she'd try her best."
+        },
+        {
+          "name": "Shadow Experiment (Memory Selector)",
+          "status": "planning",
+          "notes": "Plan: run shadow flights with configurable lookback windows (2hr, 12hr, 24hr). Rongbin warned that dev branch shadow is unreliable (2-day waits, compliance issues). Will likely use option sets / control tower instead. Need to check in code and enable via MSIT."
+        },
+        {
+          "name": "Context Object Experimentation with Francisco/Fady",
+          "status": "in_progress",
+          "notes": "Aligned on using enriched moments data for first experiment. Francisco delivering improved endpoint by ~Feb 25. Aijuan will run shadow on memory selector side. She suggested being aggressive on experiments — 'throwaway is OK, 80% is from AI code.'"
+        },
+        {
+          "name": "Offline Experiments & Query Set Validation",
+          "status": "in_progress",
+          "notes": "Ran side-by-side experiments showing ~3 point improvement on manual testing. Some results non-deterministic. Learned from Boya that P-values in summary tab matter more than raw scores. Planning to validate with production queries via shadow."
+        }
+      ],
+      "career_goals": "",
+      "strengths": [
+        "High-energy, action-oriented — consistently pushes for fast experimentation over perfection",
+        "Technically hands-on — writing Sydney integration code herself with AI tools",
+        "Good cross-team connector — bridges memory team (Rongbin), context team (Denis/Francisco), and leads (Ahmed/Mohit)",
+        "Enthusiastic about AI tooling adoption — 'Cloudy code can do it in a couple of hours'"
+      ],
+      "watch_areas": [
+        "She is a single-point bottleneck on Sydney-side integration — if she gets pulled elsewhere, experiment timelines slip",
+        "Resource constraints on Sydney side — she explicitly said she's short-staffed",
+        "Shadow experiment reliability is a concern — dev branch approach may not work, and worldwide rollout requirements are still unclear",
+        "Daniel left the team — lost institutional knowledge on lockdown conversion and other processes",
+        "Schema still changing — risk of throwaway work if not finalized soon"
+      ],
+      "notes": "Added 2026-02-20. Context from Context+Memory Deep Dive (Feb 17), Context Object Weekly Sync (Feb 19), Context and Memory Experiment (Feb 19), evaluation meeting with Boya (Feb 18)."
     }
   ],
   "stakeholders": [
     {
-      "name": "Example Director",
-      "alias": "exdirector",
-      "role": "Director of Engineering",
-      "relationship": "skip_level_manager",
-      "last_interaction": null,
-      "notes": "Replace with your actual stakeholders"
+      "name": "Ahmed Mohamed",
+      "alias": "ahmedm",
+      "role": "Senior Leader / Architect",
+      "relationship": "skip_level_or_peer_leader",
+      "last_interaction": "2026-02-19",
+      "notes": "Deep Substrate/SIGS architecture expertise. Drove the callback-token restatement pattern. Provides feedback on live context API design, latency, evals. Escalates blockers. Key voice in shiproom and technical direction."
+    },
+    {
+      "name": "Mohit Datta",
+      "alias": "mohitd",
+      "role": "Engineering Manager / Technical Lead",
+      "relationship": "peer_or_direct",
+      "last_interaction": "2026-02-19",
+      "notes": "Works closely with both Sandhya and Aijuan's teams. Coordinates with Vijay's moments service team. Flagged lack-of-ownership pattern on cross-team issues. Syncs regularly with Fady. Interested in consistent SIGS design principles."
     }
   ],
-  "key_people": []
+  "key_people": [
+    {
+      "name": "Fady Khoury",
+      "alias": "fadyk",
+      "role": "Program Manager Lead",
+      "relationship": "pm_associated_with_team",
+      "teams_involved": ["GEM", "Context & Memory"],
+      "runs": "GEM-PM Leads Sync",
+      "regular_syncs_with": ["Mohit Datta"],
+      "last_interaction": "2026-02-19",
+      "active_workstreams": [
+        {
+          "name": "Context Object Service & Moments Data Experiments",
+          "role": "Driving experimentation strategy — owns experiment planning with Francisco Santana",
+          "key_contacts": ["Francisco Santana", "Denis Heliszkowski", "Mohit Datta", "Aijuan Xia", "Rongbin Huo"],
+          "status_as_of_2026_02_19": "Aligned on first experiment using enriched moments data. Francisco delivering improved endpoint by ~Feb 25. Shadow experiment process still unclear (worldwide rollout requirement TBD). Rachel's team expected to act as data science support.",
+          "open_risks": [
+            "Shadow experiment process/requirements not yet clarified",
+            "Additional moments data types (files, chats, emails) not yet available",
+            "Unclear if payload needs worldwide rollout before shadow can run"
+          ]
+        },
+        {
+          "name": "SIGS Restatement for IDEAS/VI",
+          "role": "Coordinating between Substrate teams and CDP/IDEAS partner teams",
+          "key_contacts": ["Ahmed Mohamed", "Sandhya Sunderrajan", "Jebarson Jebamony", "Karim Elsaid", "Gonzalo Huerta Canepa", "Sergio Vargas", "Ani Vijay"],
+          "status_as_of_2026_02_19": "Ahmed proposed callback-token-based pattern to replace HPA. Karim's team agreed it looks viable. Fady owns follow-up — needs to schedule meeting with Karim and Gavin. External meeting with Sperry set for Feb 26.",
+          "open_risks": [
+            "CDP/IDEAS team was reluctant to write processors — may drag feet on adoption",
+            "Disconnect between Sigs store (7-day retention) and CSS for older data repairs"
+          ]
+        }
+      ],
+      "watch_areas": [
+        "May be stretched thin — skipped GEM-PM Leads Sync on Feb 19 due to AI jam session conflict",
+        "Mohit flagged a systemic lack-of-ownership pattern on cross-team issues; Fady's PM driver role on these is worth monitoring"
+      ],
+      "strengths": [
+        "Pushes for speed and pragmatism — consistently advocated for experimenting with what exists rather than waiting for perfection",
+        "Good at asking the right forcing-function questions (ETAs, ownership, blockers)",
+        "Comfortable coordinating across multiple engineering teams"
+      ],
+      "notes": "Added 2026-02-20. Context from meeting transcripts on Feb 18-19."
+    }
+  ]
 }
