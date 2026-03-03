@@ -52,7 +52,32 @@
         "Ownership ambiguity: Rashmi said Sandhya's team doesn't own incremental DA capabilities, but the team is being pulled into validation work anyway",
         "Team has people on holiday (Jose - Brazil) and some workstreams have single-person dependencies"
       ],
-      "notes": "Added 2026-02-20. Context from SIGS Ingestion Standup (Feb 17), restatement meetings (Feb 18-19), Helix DA readiness threads (Feb 17-18)."
+      "coaching_goals": {
+        "as_of": "2026-02-20",
+        "goals": [
+          {
+            "area": "Operate at EM altitude, not tech lead altitude",
+            "detail": "Structure standups around top 2-3 priorities and blockers, not item-by-item status. Ask: 'If we could only ship 2 things this week, what would they be?' Stop tracking every individual bug and PR herself.",
+            "evidence": "Feb 17 SIGS standup was ~45 min of detailed bug-by-bug status review with no prioritization framing."
+          },
+          {
+            "area": "Escalate faster on partner dependencies",
+            "detail": "Set a 48-hour rule: if a partner dependency is unresponsive and it's blocking a flight or milestone, escalate to skip-level. Don't wait and hope. Bring it to me with a specific ask: 'I need you to ping Andy's manager.'",
+            "evidence": "Andy unresponsive on Helix evals for multiple days — Sandhya mentioned it as an aside but didn't escalate. WebSearch V2 bug identified Feb 17 but no evidence of driving resolution."
+          },
+          {
+            "area": "Protect team capacity — push back on unowned work",
+            "detail": "When cross-team work lands on her team without clear ownership, she should name it: 'We can help with X, but Y team needs to own this. Who's the DRI?' Stop absorbing validation work for capabilities Rashmi says aren't hers.",
+            "evidence": "Rashmi explicitly said Sandhya's team doesn't own incremental DA capabilities, yet the team keeps doing the validation anyway. Also doing detailed technical guidance for Karim's CDP team on restatement."
+          },
+          {
+            "area": "Close standups with crisp action items",
+            "detail": "Last 30 seconds of every standup: 'Deven, your #1 is X. Gouthami, Y. Maciej, Z. Anything blocking? Good.' Don't end with 'All right, thanks everyone.'",
+            "evidence": "Feb 17 standup ended without a summary of priorities or next steps."
+          }
+        ]
+      },
+      "notes": "Added 2026-02-20. Coaching goals added 2026-02-20 based on meeting interaction review."
     },
     {
       "name": "Aijuan Xia",
@@ -107,7 +132,32 @@
         "Daniel left the team — lost institutional knowledge on lockdown conversion and other processes",
         "Schema still changing — risk of throwaway work if not finalized soon"
       ],
-      "notes": "Added 2026-02-20. Context from Context+Memory Deep Dive (Feb 17), Context Object Weekly Sync (Feb 19), Context and Memory Experiment (Feb 19), evaluation meeting with Boya (Feb 18)."
+      "coaching_goals": {
+        "as_of": "2026-02-20",
+        "goals": [
+          {
+            "area": "Surface blockers directly and early",
+            "detail": "When she's blocked or capacity-constrained, bring it to me the same day with options: 'I'm the bottleneck on X. Here are 3 options: (a) I deprioritize Y, (b) we borrow someone, (c) we cut scope.' Don't mention it as an aside in someone else's meeting.",
+            "evidence": "Feb 19 Context and Memory Experiment meeting — told Denis 'currently I am the blocker because we are short on stuff' as a casual aside at the end. Never raised it formally to leadership."
+          },
+          {
+            "area": "Add structure to meetings",
+            "detail": "Start every meeting with a 3-item agenda. End every meeting with owners + dates. She has the energy — she needs the scaffolding. Model after Fady's closing style: 'Do we have ETAs? Who's doing what?'",
+            "evidence": "Feb 19 Context and Memory Experiment sync meandered without clear agenda. Mohit joined mid-meeting and restated questions already partially covered because there was no structure."
+          },
+          {
+            "area": "Delegate more aggressively — even when short-staffed",
+            "detail": "Identify what only she can do vs. what Denis, Francisco, or Rongbin could take. Look for partial unblocking — can Rongbin start on a parallel track? Can Francisco contribute to Sydney integration? She shouldn't be the serial bottleneck on everything.",
+            "evidence": "She's personally coding Sydney integration while also coordinating experiments, running meetings, and managing team. Daniel left. She's doing it all without asking for help or reassigning work."
+          },
+          {
+            "area": "Apply more rigor to experiment results",
+            "detail": "Always pair results with statistical significance. '3-point gain with P < 0.05' is different from '3-point gain, sometimes non-deterministic.' Ahmed and leadership will use these numbers to make investment decisions.",
+            "evidence": "Reported ~3 point improvement in side-by-side but admitted results were 'sometimes non-deterministic.' Wasn't reading P-values correctly until Boya corrected her in the Feb 18 eval meeting."
+          }
+        ]
+      },
+      "notes": "Added 2026-02-20. Coaching goals added 2026-02-20 based on meeting interaction review."
     }
   ],
   "stakeholders": [

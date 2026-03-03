@@ -30,6 +30,7 @@ For large inputs, the file is automatically chunked so nothing gets lost.
 """
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -43,6 +44,42 @@ from manager import memory_store
 
 # Maximum characters to send in a single Claude call before chunking
 CHUNK_SIZE = 12_000
+
+# ------------------------------------------------------------------
+# Processed-file ledger — prevents re-seeding the same file twice
+# ------------------------------------------------------------------
+
+def _ledger_path() -> Path:
+    from manager import memory_store
+    return memory_store._memory_dir() / "seeded.json"
+
+
+def _load_ledger() -> dict:
+    p = _ledger_path()
+    if p.exists():
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return {}
+    return {}
+
+
+def _save_ledger(ledger: dict) -> None:
+    p = _ledger_path()
+    p.write_text(json.dumps(ledger, indent=2), encoding="utf-8")
+
+
+def _file_hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+
+
+def _already_seeded(ledger: dict, label: str, text: str) -> bool:
+    h = _file_hash(text)
+    return ledger.get(label) == h
+
+
+def _record_seeded(ledger: dict, label: str, text: str) -> None:
+    ledger[label] = _file_hash(text)
 
 EXTRACT_SYSTEM_PROMPT = """You are processing raw manager data to extract structured memory for a Microsoft M2 engineering manager's assistant.
 
@@ -201,6 +238,7 @@ def parse_args():
     source.add_argument("--text", metavar="TEXT", help="Inline text to process")
     p.add_argument("--dry-run", action="store_true", help="Show what would be written without writing")
     p.add_argument("--verbose", action="store_true", help="Print Claude's full extraction output")
+    p.add_argument("--force", action="store_true", help="Re-seed even if file was already processed")
     return p.parse_args()
 
 
@@ -429,17 +467,24 @@ def main():
         print("No input provided.")
         sys.exit(1)
 
+    ledger = _load_ledger()
+
     print(f"\n{'='*55}")
     print(f"Memory seeder — {len(inputs)} input(s)")
     if args.dry_run:
         print("DRY-RUN: nothing will be written")
+    if args.force:
+        print("--force: re-seeding all inputs regardless of ledger")
     print(f"{'='*55}")
 
-    total_files = 0
-    total_ai = 0
-
     for label, text in inputs:
+        if not args.force and _already_seeded(ledger, label, text):
+            print(f"\nSkipping: {label} [already seeded]")
+            continue
         process_input(client, config, label, text, dry_run=args.dry_run, verbose=args.verbose)
+        if not args.dry_run:
+            _record_seeded(ledger, label, text)
+            _save_ledger(ledger)
 
     print(f"\n{'='*55}")
     if args.dry_run:

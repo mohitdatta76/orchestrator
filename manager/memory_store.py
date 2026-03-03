@@ -35,7 +35,7 @@ def _memory_dir() -> Path:
             "DATA_DIR is not set. Cannot access memory. "
             "Set DATA_DIR in your .env file."
         )
-    return Path(d)
+    return Path(d).expanduser()
 
 
 def _resolve(key: str) -> tuple[Path, Path]:
